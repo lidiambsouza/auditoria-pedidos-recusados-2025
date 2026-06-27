@@ -5,6 +5,7 @@ from pyspark.sql.types import (
     StringType, FloatType, LongType,
     BooleanType, TimestampType,
 )
+from pyspark.sql.utils import AnalysisException
 
 
 class DataHandler:
@@ -37,6 +38,16 @@ class DataHandler:
             StructField("id_cliente",     LongType(),      True),
         ])
 
+    def _get_schema_relatorio(self) -> StructType:
+        return StructType([
+            StructField("id_pedido",           StringType(),    False),
+            StructField("uf",                  StringType(),    True),
+            StructField("forma_pagamento",     StringType(),    True),
+            StructField("valor_total_pedido",  FloatType(),     True),
+            StructField("data_criacao_pedido", TimestampType(), True),
+        ])
+    
+    
     def load_pagamentos(self, path: str, compression: str) -> DataFrame:
         schema = self._get_schema_pagamentos()
         return (
@@ -57,6 +68,15 @@ class DataHandler:
             .csv(path)
         )
 
-    def write_parquet(self, df: DataFrame, path: str):
+
+    def write_parquet(self, df: DataFrame, path: str, validate_schema: bool = False):
+        if validate_schema:
+            expected = self._get_schema_relatorio()
+            if df.schema != expected:
+                raise AnalysisException(
+                    f"Schema do relatorio diverge do esperado.\n"
+                    f"Esperado:  {expected}\n"
+                    f"Recebido:  {df.schema}"
+                )
         df.write.mode("overwrite").parquet(path)
         print(f"Dados salvos com sucesso em: {path}")

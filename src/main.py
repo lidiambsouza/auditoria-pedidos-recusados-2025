@@ -46,4 +46,7 @@ pagamentos_pedidos.show(10, truncate=False)
 relatorio = transformer.relatorio_pedido_pagamento(pagamentos_pedidos)
 
 relatorio.show(10, truncate=False)
+
+dh.write_parquet(relatorio, output_path, validate_schema=True)
+
 spark.stop()

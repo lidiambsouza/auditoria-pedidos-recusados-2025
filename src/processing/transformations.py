@@ -1,6 +1,7 @@
 # src/processing/transformations.py
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
+from pyspark.sql.types import DoubleType
 
 
 class Transformation:
@@ -14,7 +15,7 @@ class Transformation:
         """Adiciona a coluna valor_total_pedido (valor_unitario_pedido * quantidade_pedido)."""
         return pedidos_df.withColumn(
             "valor_total_pedido",
-            F.col("valor_unitario_pedido") * F.col("quantidade_pedido")
+            (F.col("valor_unitario_pedido") * F.col("quantidade_pedido")).cast(DoubleType())
         )
 
     def get_pagamentos_recusados_legitimos(self, pagamentos_df: DataFrame) -> DataFrame:
