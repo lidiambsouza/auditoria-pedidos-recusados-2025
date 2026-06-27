@@ -1,5 +1,5 @@
 # src/main.py
-import os
+from config.settings import PAGAMENTOS_PATH, PEDIDOS_PATH, OUTPUT_PATH
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
@@ -8,7 +8,7 @@ from pyspark.sql.types import (
     BooleanType, TimestampType,
 )
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 schema_pagamentos = StructType([
     StructField("id_pedido",          StringType(),    False),
@@ -36,26 +36,26 @@ print("Abrindo a sessao spark")
 spark = SparkSession.builder.appName("Analise de Fraude").getOrCreate()
 
 print("Abrindo o dataframe de pagamentos...")
-pagamentos_path = os.path.join(PROJECT_ROOT, "dataset", "input", "pagamentos", "*.json.gz")
+
 pagamentos = (
     spark.read
     .schema(schema_pagamentos)
     .option("compression", "gzip")
-    .json(pagamentos_path)
+    .json(PAGAMENTOS_PATH)
 )
 
 pagamentos.printSchema()
 pagamentos.show(5, truncate=False)
 
 print("Abrindo o dataframe de pedidos...")
-pedidos_path = os.path.join(PROJECT_ROOT, "dataset", "input", "pedidos", "*.csv.gz")
+
 pedidos = (
     spark.read
     .schema(schema_pedidos)
     .option("compression", "gzip")
     .option("header", "true")
     .option("sep", ";")
-    .csv(pedidos_path)
+    .csv(PEDIDOS_PATH)
 )
 
 pedidos.printSchema()
