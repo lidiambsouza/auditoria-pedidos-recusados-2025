@@ -1,6 +1,7 @@
 # src/io_utils/data_handler.py
 import logging
 
+from py4j.protocol import Py4JJavaError
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (
     DoubleType,
@@ -69,22 +70,62 @@ class DataHandler:
         )
 
     def load_pagamentos(self, path: str, compression: str) -> DataFrame:
-        schema = self._get_schema_pagamentos()
-        return (
-            self.spark.read.schema(schema).option("compression", compression).json(path)
-        )
+        try:
+            schema = self._get_schema_pagamentos()
+            df = (
+                self.spark.read.schema(schema)
+                .option("compression", compression)
+                .option("mode", "FAILFAST")
+                .json(path)
+            )
+
+            # Verificação de Dataframe Vazio
+            if df.isEmpty():
+                logger.warning(
+                    f"ATENÇÃO: O arquivo em '{path}' foi lido mas não contém registros."
+                )
+
+            return df
+
+        except AnalysisException as e:
+            logger.error(f"Erro ao carregar pedidos: {e}")
+            raise e
+        except Py4JJavaError as e:
+            logger.critical(
+                f"Erro Crítico na JVM (possível arquivo corrompido ou erro de memória): {e}"
+            )
+            raise e
 
     def load_pedidos(
         self, path: str, compression: str, header: bool, sep: str
     ) -> DataFrame:
-        schema = self._get_schema_pedidos()
-        return (
-            self.spark.read.schema(schema)
-            .option("compression", compression)
-            .option("header", header)
-            .option("sep", sep)
-            .csv(path)
-        )
+        try:
+            schema = self._get_schema_pedidos()
+            df = (
+                self.spark.read.schema(schema)
+                .option("compression", compression)
+                .option("header", header)
+                .option("sep", sep)
+                .option("mode", "FAILFAST")
+                .csv(path)
+            )
+
+            # Verificação de Dataframe Vazio
+            if df.isEmpty():
+                logger.warning(
+                    f"ATENÇÃO: O arquivo em '{path}' foi lido mas não contém registros."
+                )
+
+            return df
+
+        except AnalysisException as e:
+            logger.error(f"Erro ao carregar pedidos: {e}")
+            raise e
+        except Py4JJavaError as e:
+            logger.critical(
+                f"Erro Crítico na JVM (possível arquivo corrompido ou erro de memória): {e}"
+            )
+            raise e
 
     def _schemas_compativeis(self, actual: StructType, expected: StructType) -> bool:
         # Compara apenas nome e tipo — ignora nullable porque o Spark sempre

@@ -11,19 +11,26 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    config = carregar_config()
+    spark = None
+    try:
+        config = carregar_config()
 
-    app_name = config["spark"]["app_name"]
-    logger.info(f"Obtido o app name: {app_name}")
+        app_name = config["spark"]["app_name"]
+        logger.info(f"Obtido o app name: {app_name}")
 
-    logger.info("Abrindo a sessao spark")
-    spark = SparkSessionManager.get_spark_session(app_name=app_name)
-    transformer = Transformation()
+        logger.info("Abrindo a sessao spark")
+        spark = SparkSessionManager.get_spark_session(app_name=app_name)
+        transformer = Transformation()
 
-    pipeline = Pipeline(spark, transformer)
-    pipeline.run(config=config)
+        pipeline = Pipeline(spark, transformer)
+        pipeline.run(config=config)
 
-    spark.stop()
+    except Exception as e:
+        logger.critical(f"Erro crítico no processamento: {e}")
+    finally:
+        if spark:
+            spark.stop()
+            logger.info("Encerrando a sessao spark")
 
 
 # Crie a configuração do logging
