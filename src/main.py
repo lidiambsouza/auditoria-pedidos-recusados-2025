@@ -1,36 +1,9 @@
 # src/main.py
 from config.settings import carregar_config
 from session.spark_session import SparkSessionManager
-from pyspark.sql import functions as F
-from pyspark.sql.types import (
-    StructType, StructField,
-    StringType, FloatType, LongType,
-    BooleanType, TimestampType,
-)
+from io_utils.data_handler import DataHandler
 
 config = carregar_config()
-
-schema_pagamentos = StructType([
-    StructField("id_pedido",          StringType(),    False),
-    StructField("forma_pagamento",    StringType(),    True),
-    StructField("valor_pagamento",    FloatType(),     True),
-    StructField("status",             BooleanType(),   True),
-    StructField("data_processamento", TimestampType(), True),
-    StructField("avaliacao_fraude", StructType([
-        StructField("fraude", BooleanType(), True),
-        StructField("score",  FloatType(),   True),
-    ]), True),
-])
-
-schema_pedidos = StructType([
-    StructField("id_pedido",      StringType(),    False),
-    StructField("produto",        StringType(),    True),
-    StructField("valor_unitario", FloatType(),     True),
-    StructField("quantidade",     LongType(),      True),
-    StructField("data_criacao",   TimestampType(), True),
-    StructField("uf",             StringType(),    True),
-    StructField("id_cliente",     LongType(),      True),
-])
 
 app_name          = config["spark"]["app_name"]
 pagamentos_path   = config["paths"]["pagamentos"]
@@ -43,27 +16,18 @@ separator_pedidos = config["file_options"]["pedidos_csv"]["sep"]
 
 print("Abrindo a sessao spark")
 spark = SparkSessionManager.get_spark_session(app_name=app_name)
+dh = DataHandler(spark)
 
 print("Abrindo o dataframe de pagamentos...")
-pagamentos = (
-    spark.read
-    .schema(schema_pagamentos)
-    .option("compression", compression_json)
-    .json(pagamentos_path)
-)
+pagamentos = dh.load_pagamentos(path = pagamentos_path, compression = compression_json)
+
 
 pagamentos.printSchema()
 pagamentos.show(5, truncate=False)
 
 print("Abrindo o dataframe de pedidos...")
-pedidos = (
-    spark.read
-    .schema(schema_pedidos)
-    .option("compression", compression_csv)
-    .option("header", header_pedidos)
-    .option("sep", separator_pedidos)
-    .csv(pedidos_path)
-)
+pedidos = dh.load_pedidos(path = pedidos_path, compression=compression_csv, header=header_pedidos, sep=separator_pedidos)
+
 
 pedidos.printSchema()
 pedidos.show(5, truncate=False)
