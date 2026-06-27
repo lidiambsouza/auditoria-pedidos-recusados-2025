@@ -9,21 +9,22 @@ from pipeline.pipeline import Pipeline
 
 logger = logging.getLogger(__name__)
 
+
 def main():
     config = carregar_config()
 
-    app_name          = config["spark"]["app_name"]
+    app_name = config["spark"]["app_name"]
     logger.info(f"Obtido o app name: {app_name}")
 
-
     logger.info("Abrindo a sessao spark")
-    spark = SparkSessionManager.get_spark_session(app_name=app_name)    
+    spark = SparkSessionManager.get_spark_session(app_name=app_name)
     transformer = Transformation()
 
     pipeline = Pipeline(spark, transformer)
     pipeline.run(config=config)
 
     spark.stop()
+
 
 # Crie a configuração do logging
 def configurar_logging():
@@ -34,25 +35,24 @@ def configurar_logging():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
-        
     logging.basicConfig(
         # Nível mínimo de severidade para ser registrado.
         # DEBUG < INFO < WARNING < ERROR < CRITICAL
         level=logging.INFO,
-
-
         # Formato da mensagem de log.
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
         # Lista de handlers. Aqui, estamos logando para um arquivo e para o console.
         handlers=[
-            logging.FileHandler("auditoria-pedidos-recusados-2025.log", encoding="utf-8"), # Log para arquivo
-            logging.StreamHandler(sys.stdout)                         # Log para o console (terminal)
-        ]
+            logging.FileHandler(
+                "auditoria-pedidos-recusados-2025.log", encoding="utf-8"
+            ),  # Log para arquivo
+            logging.StreamHandler(sys.stdout),  # Log para o console (terminal)
+        ],
     )
     logging.info("Logging configurado.")
 
+
 if __name__ == "__main__":
-  configurar_logging()
-  main()
+    configurar_logging()
+    main()

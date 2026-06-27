@@ -3,10 +3,12 @@
 import os
 import yaml
 
-#cross-platform
+# cross-platform
 # os.path.abspath garante o caminho absoluto do arquivo atual independente de onde o script é chamado.
 # os.path.dirname sobe um nível por vez: settings.py → src/config/ → src/ → raiz do projeto.
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 
 def carregar_config(path: str = None) -> dict:
