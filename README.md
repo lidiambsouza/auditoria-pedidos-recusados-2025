@@ -1,25 +1,90 @@
-# auditoria-pedidos-recusados-2025
-Relatório de pedidos de venda cujo pagamentos recusados (status=false) e que na avaliação de fraude foram classificados como legítimos (fraude=false) de 2025
+# Análise de Fraude de 2025
+
+Relatório de pedidos de venda cujos pagamentos foram recusados (`status=false`) e que na avaliação de fraude foram classificados como legítimos (`fraude=false`) no período de 2024 a 2025.
+
+## Tecnologias
+
+- Python 3.14
+- PySpark 4.1.1
+- PyYAML 6.0.3
+- Ruff · Black · Pytest
+
+---
 
 ## Estrutura de pastas
 
 ```
 auditoria-pedidos-recusados-2025/
+├── config/
+│   └── settings.yaml           # configurações centralizadas (paths, Spark, opções de leitura)
+├── dataset/
+│   ├── input/
+│   │   ├── pagamentos/         # arquivos *.json.gz
+│   │   └── pedidos/            # arquivos *.csv.gz
+│   └── output/                 # relatório gerado em Parquet
 ├── src/
-│   ├── main.py
-│   └── dataset/
-│       ├── input/
-│       │   ├── pagamentos/   # arquivos *.json.gz
-│       │   └── pedidos/      # arquivos *.csv.gz
-│       └── output/
+│   ├── config/
+│   │   └── settings.py         # carrega o YAML e resolve paths absolutos
+│   ├── io_utils/
+│   │   └── data_handler.py     # leitura e escrita de dados (schemas + validação)
+│   ├── pipeline/
+│   │   └── pipeline.py         # orquestra o fluxo completo de execução
+│   ├── processing/
+│   │   └── transformations.py  # regras de negócio e transformações
+│   ├── session/
+│   │   └── spark_session.py    # criação da SparkSession
+│   └── main.py                 # entrypoint, logging
+├── pyproject.toml
 ├── requirements.txt
 └── README.md
 ```
+
+---
+
+## Configuração do ambiente
+
+### 1. Criar e ativar o ambiente virtual
+
+```bash
+python -m venv venv
+source venv/Scripts/activate   # Windows (Git Bash)
+source venv/bin/activate        # Linux / Mac
+```
+
+### 2. Instalar dependências
+
+```bash
+# somente produção
+pip install .
+
+# produção + ferramentas de desenvolvimento
+pip install ".[dev]"
+```
+
+---
 
 ## Como executar
 
 ```bash
 spark-submit ./src/main.py
+```
+
+---
+
+## Ferramentas de desenvolvimento
+
+```bash
+# linting
+ruff check .
+
+# formatação
+black src/
+
+# testes
+pytest
+
+# testes com cobertura
+pytest --cov=src --cov-report=term-missing
 ```
 
 ---
@@ -48,12 +113,6 @@ java.lang.UnsatisfiedLinkError: 'boolean org.apache.hadoop.io.nativeio.NativeIO$
 mkdir -p /c/hadoop/bin
 ```
 
-Ou pelo PowerShell/Prompt:
-
-```
-mkdir C:\hadoop\bin
-```
-
 **2. Baixar os binários**
 
 Acesse o repositório [cdarlint/winutils](https://github.com/cdarlint/winutils) no GitHub e baixe os arquivos da pasta `hadoop-3.3.6/bin/`:
@@ -67,20 +126,15 @@ Coloque ambos dentro de `C:\hadoop\bin\`.
 
 **3. Configurar a variável de ambiente HADOOP_HOME**
 
-**No terminal bash (Git Bash)** — adicione ao `~/.bashrc`:
+No terminal bash — adicione ao `~/.bashrc`:
 
 ```bash
 export HADOOP_HOME=/c/hadoop
 export PATH=$HADOOP_HOME/bin:$PATH
-```
-
-Depois aplique:
-
-```bash
 source ~/.bashrc
 ```
 
-**No Windows (permanente via PowerShell)**:
+No Windows via PowerShell (permanente):
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable("HADOOP_HOME", "C:\hadoop", "User")
@@ -95,8 +149,12 @@ winutils.exe ls /
 
 Se listar o diretório raiz sem erro, está funcionando.
 
-**5. Executar o projeto**
+---
 
-```bash
-spark-submit ./src/main.py
-```
+## Autores
+
+| Nome | E-mail |
+|---|---|
+| lidiambsouza | lidiambsouza@gmail.com |
+| JuliaFQ | queirozjuliadefatima@gmail.com |
+| VictorManks | victorfdefariaq@gmail.com |

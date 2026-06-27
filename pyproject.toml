@@ -1,0 +1,43 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Analise de Fraude de 2025"
+version = "1.0.0"
+authors = [
+  { name="lidiambsouza", email="lidiambsouza@gmail.com" },
+  { name="JuliaFQ", email="queirozjuliadefatima@gmail.com" },
+  { name="VictorManks", email="victorfdefariaq@gmail.com" } 
+]
+
+description = "Relatório de pedidos de venda cujo pagamentos recusados e que na avaliação de fraude foram classificados como legítimos de 2025"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pyspark==4.1.1",
+    "PyYAML==6.0.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff==0.12.9",
+    "black==25.1.0",
+    "build==1.3.0",
+    "pytest==8.4.1",
+    "pytest-cov==6.0.0",
+    "coverage==7.14.3",
+]
+
+[project.scripts]
+run-data-pipeline = "main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = {find = {where = ["src"]}}
