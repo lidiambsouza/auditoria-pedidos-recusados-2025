@@ -30,9 +30,9 @@ class DataHandler:
         return StructType([
             StructField("id_pedido",      StringType(),    False),
             StructField("produto",        StringType(),    True),
-            StructField("valor_unitario", FloatType(),     True),
-            StructField("quantidade",     LongType(),      True),
-            StructField("data_criacao",   TimestampType(), True),
+            StructField("valor_unitario_pedido", FloatType(),     True),
+            StructField("quantidade_pedido",     LongType(),      True),
+            StructField("data_criacao_pedido",   TimestampType(), True),
             StructField("uf",             StringType(),    True),
             StructField("id_cliente",     LongType(),      True),
         ])

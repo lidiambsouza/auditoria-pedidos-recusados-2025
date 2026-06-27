@@ -2,8 +2,10 @@
 from config.settings import carregar_config
 from session.spark_session import SparkSessionManager
 from io_utils.data_handler import DataHandler
+from processing.transformations import Transformation
 
 config = carregar_config()
+transformer = Transformation()
 
 app_name          = config["spark"]["app_name"]
 pagamentos_path   = config["paths"]["pagamentos"]
@@ -32,4 +34,16 @@ pedidos = dh.load_pedidos(path = pedidos_path, compression=compression_csv, head
 pedidos.printSchema()
 pedidos.show(5, truncate=False)
 
+### criar relatorio###
+pedidos_2025 = transformer.get_pedidos_2025(pedidos) #diminuir a base
+pedidos_com_total = transformer.add_valor_total_pedidos(pedidos_2025)#adiciona  a informação
+
+pagamentos_recusados_legitimos = transformer.get_pagamentos_recusados_legitimos(pagamentos)
+
+pagamentos_pedidos = transformer.join_pedido_pagamento(pedidos_com_total, pagamentos_recusados_legitimos)
+pagamentos_pedidos.show(10, truncate=False)
+
+relatorio = transformer.relatorio_pedido_pagamento(pagamentos_pedidos)
+
+relatorio.show(10, truncate=False)
 spark.stop()
