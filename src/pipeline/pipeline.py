@@ -1,8 +1,12 @@
 # src/pipeline/pipeline.py
+import logging
+
+from pyspark.errors import AnalysisException
 from pyspark.sql import SparkSession
 from io_utils.data_handler import DataHandler
 from processing.transformations import Transformation
 
+logger = logging.getLogger(__name__)
 class Pipeline:
     """
     Encapsula a lógica de execução do pipeline de dados.
@@ -15,7 +19,7 @@ class Pipeline:
         """
         Executa o pipeline completo: carga, transformação, e salvamento.
         """
-        print("Pipeline iniciado...")    
+        logger.info("Pipeline iniciado...")    
 
         pagamentos_path   = config["paths"]["pagamentos"]
         pedidos_path      = config["paths"]["pedidos"]
@@ -25,8 +29,8 @@ class Pipeline:
         header_pedidos    = config["file_options"]["pedidos_csv"]["header"]
         separator_pedidos = config["file_options"]["pedidos_csv"]["sep"]    
         
-        print("Abrindo o dataframe de pagamentos...")
-        print(f"""
+        logger.info("Abrindo o dataframe de pagamentos...")
+        logger.info(f"""
         Obtidos os seguintes parâmetros de pagamentos: 
         - path: {pagamentos_path}
         - compression: {compression_json_pagamentos}
@@ -37,8 +41,8 @@ class Pipeline:
         pagamentos_df.printSchema()
         pagamentos_df.show(5, truncate=False)
 
-        print("Abrindo o dataframe de pedidos...")
-        print(f"""
+        logger.info("Abrindo o dataframe de pedidos...")
+        logger.info(f"""
             Obtidos os seguintes parâmetros de pedidos: 
             - path: {pedidos_path}
             - compression: {compression_csv_pedidos}
@@ -52,26 +56,30 @@ class Pipeline:
         pedidos_df.show(5, truncate=False)
 
         ### criar relatorio###
-        print("Filtrando pedidos de 2025")
+        logger.info("Filtrando pedidos de 2025")
         pedidos_2025_df = self.transformer.get_pedidos_2025(pedidos_df) #diminuir a base
 
-        print("Adicionando a coluna com o valor total do pedido")
+        logger.info("Adicionando a coluna com o valor total do pedido")
         pedidos_com_valor_total_df = self.transformer.add_valor_total_pedidos(pedidos_2025_df)#adiciona  a informação
 
-        print("Filtrando pagamentos recusados e não fraudulentos")
+        logger.info("Filtrando pagamentos recusados e não fraudulentos")
         pagamentos_recusados_legitimos_df = self.transformer.get_pagamentos_recusados_legitimos(pagamentos_df)
 
-        print("Unificando pedidos e pagamentos")
+        logger.info("Unificando pedidos e pagamentos")
         pagamentos_pedidos_df = self.transformer.join_pedido_pagamento(pedidos_com_valor_total_df, pagamentos_recusados_legitimos_df)
         pagamentos_pedidos_df.show(10, truncate=False)
 
-        print("Criando o relatorio de pedidos recusados e não fraudulentos para o parquet")
+        logger.info("Criando o relatorio de pedidos recusados e não fraudulentos para o parquet")
         relatorio_pedidos_recusados_sem_fraudes_df = self.transformer.relatorio_pedido_pagamento(pagamentos_pedidos_df)
 
         relatorio_pedidos_recusados_sem_fraudes_df.show(10, truncate=False)
 
-        print(f"Obtido o path de saída: {ralatorio_final_path}")
-        self.data_handler.write_parquet(relatorio_pedidos_recusados_sem_fraudes_df, ralatorio_final_path, validate_schema=True)
-
-        print("Pipeline concluído com sucesso!")
+        logger.info(f"Obtido o path de saída: {ralatorio_final_path}")
+        try:
+            logger.info("Salvando o relatorio em parquet...")
+            self.data_handler.write_parquet(relatorio_pedidos_recusados_sem_fraudes_df, ralatorio_final_path, validate_schema=True)
+        except AnalysisException as e:
+            logger.error(f"Erro ao salvar o relatorio: {e}")
+            raise
+        logger.info("Pipeline concluído com sucesso!")
       

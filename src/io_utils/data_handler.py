@@ -1,12 +1,15 @@
 # src/io_utils/data_handler.py
+import logging
+
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (
     DoubleType, StructType, StructField,
     StringType, FloatType, LongType,
     BooleanType, TimestampType,
 )
-from pyspark.sql.utils import AnalysisException
+from pyspark.errors import AnalysisException
 
+logger = logging.getLogger(__name__)
 
 class DataHandler:
     """Responsável pela leitura e escrita de dados."""
@@ -89,4 +92,4 @@ class DataHandler:
                     f"Recebido:  {df.schema}"
                 )
         df.write.mode("overwrite").parquet(path)
-        print(f"Dados salvos com sucesso em: {path}")
+        logger.info(f"Dados salvos com sucesso em: {path}")
