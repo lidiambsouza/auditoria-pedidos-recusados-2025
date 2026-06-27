@@ -1,6 +1,6 @@
 # src/main.py
 from config.settings import carregar_config
-from pyspark.sql import SparkSession
+from session.spark_session import SparkSessionManager
 from pyspark.sql import functions as F
 from pyspark.sql.types import (
     StructType, StructField,
@@ -42,7 +42,7 @@ header_pedidos    = config["file_options"]["pedidos_csv"]["header"]
 separator_pedidos = config["file_options"]["pedidos_csv"]["sep"]
 
 print("Abrindo a sessao spark")
-spark = SparkSession.builder.appName(app_name).getOrCreate()
+spark = SparkSessionManager.get_spark_session(app_name=app_name)
 
 print("Abrindo o dataframe de pagamentos...")
 pagamentos = (
