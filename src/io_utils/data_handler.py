@@ -1,7 +1,7 @@
 # src/io_utils/data_handler.py
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import (
-    StructType, StructField,
+    DoubleType, StructType, StructField,
     StringType, FloatType, LongType,
     BooleanType, TimestampType,
 )
@@ -41,10 +41,10 @@ class DataHandler:
     def _get_schema_relatorio(self) -> StructType:
         return StructType([
             StructField("id_pedido",           StringType(),    False),
-            StructField("uf",                  StringType(),    True),
-            StructField("forma_pagamento",     StringType(),    True),
-            StructField("valor_total_pedido",  FloatType(),     True),
-            StructField("data_criacao_pedido", TimestampType(), True),
+            StructField("uf",                  StringType(),    False),
+            StructField("forma_pagamento",     StringType(),    False),
+            StructField("valor_total_pedido",  DoubleType(),     False),
+            StructField("data_criacao_pedido", TimestampType(), False),
         ])
     
     
