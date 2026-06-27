@@ -69,10 +69,20 @@ class DataHandler:
         )
 
 
+    def _schemas_compativeis(self, actual: StructType, expected: StructType) -> bool:
+        # Compara apenas nome e tipo — ignora nullable porque o Spark sempre
+        # produz nullable=True em colunas de join, independente do schema de entrada.
+        if len(actual.fields) != len(expected.fields):
+            return False
+        return all(
+            a.name == e.name and a.dataType == e.dataType
+            for a, e in zip(actual.fields, expected.fields)
+        )
+
     def write_parquet(self, df: DataFrame, path: str, validate_schema: bool = False):
         if validate_schema:
             expected = self._get_schema_relatorio()
-            if df.schema != expected:
+            if not self._schemas_compativeis(df.schema, expected):
                 raise AnalysisException(
                     f"Schema do relatorio diverge do esperado.\n"
                     f"Esperado:  {expected}\n"
