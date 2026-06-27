@@ -1,6 +1,6 @@
 # Análise de Fraude de 2025
 
-Relatório de pedidos de venda cujos pagamentos foram recusados (`status=false`) e que na avaliação de fraude foram classificados como legítimos (`fraude=false`) no período de 2024 a 2025.
+Relatório de pedidos de venda cujos pagamentos foram recusados (`status=false`) e que na avaliação de fraude foram classificados como legítimos (`fraude=false`) no período de 2025.
 
 ## Tecnologias
 
@@ -65,9 +65,35 @@ pip install ".[dev]"
 
 ## Como executar
 
+### Direto pelo código-fonte
+
 ```bash
 spark-submit ./src/main.py
 ```
+
+### Via wheel instalado
+
+**1. Gerar o wheel**
+
+```bash
+python -m build
+```
+
+Isso cria a pasta `dist/` com o arquivo `analise_de_fraude_2025-1.0.0-py3-none-any.whl`.
+
+**2. Instalar o wheel**
+
+```bash
+pip install dist/analise_de_fraude_2025-1.0.0-py3-none-any.whl
+```
+
+**3. Executar**
+
+```bash
+spark-submit ./src/main.py
+```
+
+> Atenção: esteja dentro da pasta raiz do projeto (`auditoria-pedidos-recusados-2025/`) ao rodar o comando, pois o `settings.py` resolve os paths de `dataset/` relativos à raiz do projeto.
 
 ---
 
