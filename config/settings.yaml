@@ -1,0 +1,15 @@
+spark:
+  app_name: "Analise de Fraude de 2025"
+
+paths:
+  pagamentos: "dataset/input/pagamentos/*.json.gz"
+  pedidos: "dataset/input/pedidos/*.csv.gz"
+  output: "dataset/output"
+
+file_options:
+  pagamentos_json:
+    compression: "gzip"
+  pedidos_csv:
+    compression: "gzip"
+    header: true
+    sep: ";"

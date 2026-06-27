@@ -3,19 +3,20 @@
 import os
 import yaml
 
-
+#cross-platform
+# os.path.abspath garante o caminho absoluto do arquivo atual independente de onde o script é chamado.
+# os.path.dirname sobe um nível por vez: settings.py → src/config/ → src/ → raiz do projeto.
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Caminhos para os dados de entrada (fontes)
-PAGAMENTOS_PATH = os.path.join(PROJECT_ROOT, "dataset", "input", "pagamentos", "*.json.gz")
-PEDIDOS_PATH    = os.path.join(PROJECT_ROOT, "dataset", "input", "pedidos", "*.csv.gz")
 
-# Caminho para os dados de saída (destino)
-OUTPUT_PATH = os.path.join(PROJECT_ROOT, "dataset", "output")
-
-
-
-def carregar_config(path: str = "./auditoria-pedidos-recursados-2025/config/settings.yaml") -> dict:
-    """Carrega um arquivo de configuração YAML."""
-    with open(path, 'r') as file:
-        return yaml.safe_load(file)
+def carregar_config(path: str = None) -> dict:
+    if path is None:
+        path = os.path.join(PROJECT_ROOT, "config", "settings.yaml")
+    with open(path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    # O YAML armazena caminhos com "/" (padrão Unix). O split("/") separa os segmentos e
+    # o os.path.join os remonta usando o separador correto de cada SO ("\" no Windows, "/" no Linux/Mac),
+    # tornando os caminhos compatíveis sem nenhuma alteração de código entre ambientes.
+    for key, value in config.get("paths", {}).items():
+        config["paths"][key] = os.path.join(PROJECT_ROOT, *value.split("/"))
+    return config
