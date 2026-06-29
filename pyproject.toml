@@ -14,7 +14,7 @@ authors = [
 
 description = "Relatório de pedidos de venda cujo pagamentos recusados e que na avaliação de fraude foram classificados como legítimos de 2025"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3",

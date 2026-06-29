@@ -4,7 +4,7 @@ Relatório de pedidos de venda cujos pagamentos foram recusados (`status=false`)
 
 ## Tecnologias
 
-- Python 3.14
+- Python 3.13
 - PySpark 4.1.1
 - PyYAML 6.0.3
 - Ruff · Black · Pytest
