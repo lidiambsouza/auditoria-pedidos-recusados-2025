@@ -177,6 +177,35 @@ Se listar o diretório raiz sem erro, está funcionando.
 
 ---
 
+## Testes no Windows — leitura via JSON em vez de `createDataFrame`
+
+No Windows, o worker Python do PySpark 4.1.1 crasha (`WinError 10038` ao fechar o socket de comunicação com a JVM) sempre que dados locais precisam voltar pela ponte Python↔JVM — exatamente o que `spark.createDataFrame(lista).collect()` faz:
+
+```
+org.apache.spark.SparkException: Python worker exited unexpectedly (crashed)
+Caused by: java.io.EOFException
+```
+
+O problema **não é dos testes nem da versão do Python** (reproduzido em 3.13 e 3.14, fora do pytest). É uma limitação do worker do PySpark 4.x no Windows. Operações nativas da JVM — como `spark.range(...)` e **leitura de arquivos** (`spark.read`) — não passam por esse worker e funcionam normalmente.
+
+Por isso os testes constroem os DataFrames de entrada lendo de um arquivo JSON temporário, em vez de `createDataFrame`:
+
+```python
+def make_df(spark, data, schema, tmp_path):
+    """Cria um DataFrame a partir de dados locais via arquivo JSON temporário."""
+    path = tmp_path / f"{uuid.uuid4().hex}.json"
+    with open(path, "w", encoding="utf-8") as f:
+        for row in data:
+            f.write(json.dumps(_to_json_record(row, schema)) + "\n")
+    return spark.read.schema(schema).json(str(path))
+```
+
+Esse caminho roda 100% na JVM, preserva todos os tipos (inclusive o struct aninhado `avaliacao_fraude`) e funciona em **qualquer ambiente** (Windows, Linux, Mac, CI). O pipeline de produção nunca foi afetado, pois ele também lê de arquivos (CSV/JSON).
+
+> Em Linux/Mac o `createDataFrame` funciona normalmente; a abordagem via JSON é mantida por ser portável e não ter desvantagem.
+
+---
+
 ## Autores
 
 | Nome | E-mail |
