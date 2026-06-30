@@ -74,23 +74,31 @@ source venv/Scripts/activate
 **2. Instalar dependências**
 
 ```bash
+# a partir do requirements.txt (versões fixas de todas as dependências):
+pip install -r requirements.txt
+
+# ou a partir do pyproject.toml:
 pip install ".[dev]"     # produção + ferramentas de desenvolvimento
-# ou apenas produção:
-pip install .
+pip install .            # apenas produção
 ```
 
 **3. Configurar o Hadoop winutils (obrigatório no Windows)**
 
-O Spark usa o Hadoop internamente para acessar o sistema de arquivos. No Windows, ele depende de dois binários nativos (`winutils.exe` e `hadoop.dll`); sem eles, o Spark falha ao ler os datasets:
+O Spark usa o Hadoop internamente para acessar o sistema de arquivos. No Windows, ele depende de dois binários nativos — `winutils.exe` e `hadoop.dll` — que precisam estar em `C:\hadoop\bin` **e acessíveis via `PATH`**. Sem isso, a leitura dos datasets falha, e a mensagem exibida costuma ser **enganosa**:
 
 ```
-Did not find winutils.exe: HADOOP_HOME and hadoop.home.dir are unset.
+# O que aparece para o usuário (parece um arquivo inexistente):
+java.io.FileNotFoundException: File .../*.json.gz does not exist
+
+# A causa real (binários nativos do Hadoop não encontrados no PATH):
 java.lang.UnsatisfiedLinkError: 'boolean org.apache.hadoop.io.nativeio.NativeIO$Windows.access0(...)'
 ```
 
+**Passos:**
+
 - Crie a pasta `C:\hadoop\bin`;
 - Baixe `winutils.exe` e `hadoop.dll` da pasta `hadoop-3.3.6/bin/` do repositório [cdarlint/winutils](https://github.com/cdarlint/winutils) e coloque-os em `C:\hadoop\bin\`;
-- Defina as variáveis de ambiente `HADOOP_HOME` e `PATH`:
+- Defina `HADOOP_HOME` **e inclua `C:\hadoop\bin` no `PATH`** (os dois são necessários):
 
   **PowerShell (permanente, para o usuário):**
 
@@ -99,15 +107,17 @@ java.lang.UnsatisfiedLinkError: 'boolean org.apache.hadoop.io.nativeio.NativeIO$
   [System.Environment]::SetEnvironmentVariable("PATH", "C:\hadoop\bin;" + [System.Environment]::GetEnvironmentVariable("PATH","User"), "User")
   ```
 
-  **Git Bash (permanente):** adicione ao arquivo `~/.bashrc` e recarregue:
+  **Git Bash (permanente):** o Git Bash no Windows abre como *login shell* e lê o **`~/.bash_profile`** — **não** o `~/.bashrc`. Se você exportar no `~/.bashrc`, funciona só na sessão atual e **some ao reabrir** o terminal. Use o `~/.bash_profile`:
 
   ```bash
-  echo 'export HADOOP_HOME=/c/hadoop' >> ~/.bashrc
-  echo 'export PATH=$HADOOP_HOME/bin:$PATH' >> ~/.bashrc
-  source ~/.bashrc
+  echo 'export HADOOP_HOME=/c/hadoop' >> ~/.bash_profile
+  echo 'export PATH=/c/hadoop/bin:$PATH' >> ~/.bash_profile
+  source ~/.bash_profile
   ```
 
-- Verifique com `winutils.exe ls /`.
+- Verifique com `winutils.exe ls /` (deve listar sem erro).
+
+> **Solução de problemas:** se os arquivos `winutils.exe`/`hadoop.dll` **já estão** em `C:\hadoop\bin\` e o `HADOOP_HOME` **já está** definido, mas o Spark ainda falha com `UnsatisfiedLinkError`/`FileNotFoundException`, o problema quase sempre é o **`PATH` incompleto** — ele precisa conter `C:\hadoop\bin` (no Git Bash, `/c/hadoop/bin`). Basta acrescentar essa entrada ao `PATH`; não é necessário reinstalar nada.
 
 ### Linux / Mac
 
@@ -121,9 +131,12 @@ source venv/bin/activate
 **2. Instalar dependências**
 
 ```bash
+# a partir do requirements.txt (versões fixas de todas as dependências):
+pip install -r requirements.txt
+
+# ou a partir do pyproject.toml:
 pip install ".[dev]"     # produção + ferramentas de desenvolvimento
-# ou apenas produção:
-pip install .
+pip install .            # apenas produção
 ```
 
 > Em Linux/Mac **não** é necessário o winutils — o Hadoop nativo já é suportado.
