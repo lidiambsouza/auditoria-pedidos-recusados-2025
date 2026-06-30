@@ -2,8 +2,9 @@
 import logging
 import sys
 
-from config.settings import carregar_config
+from config.settings import Config
 from session.spark_session import SparkSessionManager
+from io_utils.data_handler import DataHandler
 from processing.transformations import Transformation
 from pipeline.pipeline import Pipeline
 
@@ -13,17 +14,21 @@ logger = logging.getLogger(__name__)
 def main():
     spark = None
     try:
-        config = carregar_config()
+        config = Config()
 
-        app_name = config["spark"]["app_name"]
+        app_name = config.data["spark"]["app_name"]
         logger.info(f"Obtido o app name: {app_name}")
 
         logger.info("Abrindo a sessao spark")
         spark = SparkSessionManager.get_spark_session(app_name=app_name)
+
+        # Aggregation root: todas as dependências são instanciadas aqui e
+        # injetadas no Pipeline.
+        data_handler = DataHandler(spark)
         transformer = Transformation()
 
-        pipeline = Pipeline(spark, transformer)
-        pipeline.run(config=config)
+        pipeline = Pipeline(data_handler, transformer)
+        pipeline.run(config=config.data)
 
     except Exception as e:
         logger.critical(f"Erro crítico no processamento: {e}")
