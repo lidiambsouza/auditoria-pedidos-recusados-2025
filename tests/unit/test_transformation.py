@@ -259,3 +259,33 @@ class TestRelatorioPedidoPagamento:
         resultado = Transformation().relatorio_pedido_pagamento(df)
         ordem = [r.id_pedido for r in resultado.collect()]
         assert ordem == ["p2", "p4", "p3", "p1"]
+
+
+class TestTratamentoDeErros:
+    """Cada método deve capturar, logar e propagar erros (try/except + logging)."""
+
+    @pytest.fixture
+    def df_invalido(self, spark, tmp_path):
+        """DataFrame sem nenhuma das colunas esperadas pelas transformações."""
+        schema = StructType([StructField("coluna_inexistente", StringType(), True)])
+        return make_df(spark, [("x",)], schema, tmp_path)
+
+    def test_get_pedidos_2025_propaga_erro(self, df_invalido):
+        with pytest.raises(Exception):
+            Transformation().get_pedidos_2025(df_invalido)
+
+    def test_add_valor_total_propaga_erro(self, df_invalido):
+        with pytest.raises(Exception):
+            Transformation().add_valor_total_pedidos(df_invalido)
+
+    def test_get_pagamentos_recusados_propaga_erro(self, df_invalido):
+        with pytest.raises(Exception):
+            Transformation().get_pagamentos_recusados_legitimos(df_invalido)
+
+    def test_join_pedido_pagamento_propaga_erro(self, df_invalido):
+        with pytest.raises(Exception):
+            Transformation().join_pedido_pagamento(df_invalido, df_invalido)
+
+    def test_relatorio_propaga_erro(self, df_invalido):
+        with pytest.raises(Exception):
+            Transformation().relatorio_pedido_pagamento(df_invalido)
