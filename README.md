@@ -55,7 +55,21 @@ Critérios aplicados:
 
 ### Windows
 
-**1. Criar e ativar o ambiente virtual**
+**1. Instalar o Python 3.13**
+
+Via [winget](https://learn.microsoft.com/windows/package-manager/):
+
+```powershell
+winget install Python.Python.3.13
+```
+
+Ou baixe o instalador em https://www.python.org/downloads/ e marque **"Add python.exe to PATH"** durante a instalação. Verifique:
+
+```powershell
+python --version
+```
+
+**2. Criar e ativar o ambiente virtual**
 
 PowerShell:
 
@@ -71,7 +85,7 @@ python -m venv venv
 source venv/Scripts/activate
 ```
 
-**2. Instalar dependências**
+**3. Instalar dependências**
 
 ```bash
 # a partir do requirements.txt (versões fixas de todas as dependências):
@@ -82,7 +96,7 @@ pip install ".[dev]"     # produção + ferramentas de desenvolvimento
 pip install .            # apenas produção
 ```
 
-**3. Configurar o Hadoop winutils (obrigatório no Windows)**
+**4. Configurar o Hadoop winutils (obrigatório no Windows)**
 
 O Spark usa o Hadoop internamente para acessar o sistema de arquivos. No Windows, ele depende de dois binários nativos — `winutils.exe` e `hadoop.dll` — que precisam estar em `C:\hadoop\bin` **e acessíveis via `PATH`**. Sem isso, a leitura dos datasets falha, e a mensagem exibida costuma ser **enganosa**:
 
@@ -121,14 +135,30 @@ java.lang.UnsatisfiedLinkError: 'boolean org.apache.hadoop.io.nativeio.NativeIO$
 
 ### Linux / Mac
 
-**1. Criar e ativar o ambiente virtual**
+**1. Instalar o Python 3.13**
 
 ```bash
-python3 -m venv venv
+# Ubuntu/Debian
+sudo apt update && sudo apt install -y python3.13 python3.13-venv
+
+# macOS (Homebrew)
+brew install python@3.13
+```
+
+Verifique:
+
+```bash
+python3.13 --version
+```
+
+**2. Criar e ativar o ambiente virtual**
+
+```bash
+python3.13 -m venv venv
 source venv/bin/activate
 ```
 
-**2. Instalar dependências**
+**3. Instalar dependências**
 
 ```bash
 # a partir do requirements.txt (versões fixas de todas as dependências):
