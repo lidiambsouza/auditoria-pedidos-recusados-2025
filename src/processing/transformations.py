@@ -70,17 +70,23 @@ class Transformation:
         """Monta o relatório final ordenado por uf, forma_pagamento e data_criacao_pedido."""
         try:
             logger.info("Montando o relatório final de pedidos e pagamentos.")
-            return pagamentos_pedidos.select(
-                F.col("id_pedido"),
-                F.col("uf"),
-                F.col("forma_pagamento"),
-                F.col("valor_total_pedido"),
-                F.col("data_criacao_pedido"),
-            ).orderBy(
-                F.col("uf"),
-                F.col("forma_pagamento"),
-                F.col("data_criacao_pedido"),
-                ascending=True,
+            return (
+                pagamentos_pedidos.select(
+                    F.col("id_pedido"),
+                    F.col("uf"),
+                    F.col("forma_pagamento"),
+                    F.col("valor_total_pedido"),
+                    F.col("data_criacao_pedido"),
+                )
+                # Protege contra duplicatas: um pedido com mais de um pagamento
+                # recusado/legítimo geraria fan-out no join. Garante 1 linha por pedido.
+                .dropDuplicates(["id_pedido"])
+                .orderBy(
+                    F.col("uf"),
+                    F.col("forma_pagamento"),
+                    F.col("data_criacao_pedido"),
+                    ascending=True,
+                )
             )
         except Exception as e:
             logger.error(f"Erro ao montar o relatório final: {e}")

@@ -260,6 +260,19 @@ class TestRelatorioPedidoPagamento:
         ordem = [r.id_pedido for r in resultado.collect()]
         assert ordem == ["p2", "p4", "p3", "p1"]
 
+    def test_remove_pedido_duplicado(self, spark, tmp_path):
+        """Pedido com mais de um pagamento (fan-out do join) deve aparecer uma única vez."""
+        dados = [
+            ("p1", "SP", "cartao", 100.0, datetime(2025, 1, 1), False, False),
+            ("p1", "SP", "boleto", 100.0, datetime(2025, 1, 1), False, False),
+            ("p2", "RJ", "pix", 200.0, datetime(2025, 2, 1), False, False),
+        ]
+        df = make_df(spark, dados, SCHEMA_RELATORIO_IN, tmp_path)
+        resultado = Transformation().relatorio_pedido_pagamento(df)
+        ids = [r.id_pedido for r in resultado.collect()]
+        assert sorted(ids) == ["p1", "p2"]
+        assert ids.count("p1") == 1
+
 
 class TestTratamentoDeErros:
     """Cada método deve capturar, logar e propagar erros (try/except + logging)."""
