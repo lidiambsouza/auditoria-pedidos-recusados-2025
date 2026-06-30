@@ -166,6 +166,49 @@ paths:
   output: "dataset/output"
 ```
 
+### Estrutura dos datasets
+
+Os schemas são definidos **explicitamente** (sem inferência) em [`data_handler.py`](src/io_utils/data_handler.py).
+
+**Pedidos** — CSV comprimido (`*.csv.gz`), com cabeçalho e separador `;`:
+
+| Atributo | Tipo | Descrição |
+|---|---|---|
+| `id_pedido` | string | Identificador único do pedido (chave de junção) |
+| `produto` | string | Nome/descrição do produto |
+| `valor_unitario_pedido` | float | Valor unitário do produto |
+| `quantidade_pedido` | long | Quantidade de itens do pedido |
+| `data_criacao_pedido` | timestamp | Data/hora de criação do pedido |
+| `uf` | string | Estado (UF) onde o pedido foi feito |
+| `id_cliente` | long | Identificador do cliente |
+
+**Pagamentos** — JSON comprimido (`*.json.gz`), com um objeto aninhado de avaliação de fraude:
+
+| Atributo | Tipo | Descrição |
+|---|---|---|
+| `id_pedido` | string | Identificador do pedido (chave de junção) |
+| `forma_pagamento` | string | Forma de pagamento (cartão, boleto, pix, etc.) |
+| `valor_pagamento` | float | Valor pago |
+| `status` | boolean | Status do pagamento — `true` = aprovado, `false` = **recusado** |
+| `data_processamento` | timestamp | Data/hora do processamento do pagamento |
+| `avaliacao_fraude` | struct | Objeto aninhado com o resultado da avaliação de fraude |
+| `avaliacao_fraude.fraude` | boolean | `true` = fraudulento, `false` = **legítimo** |
+| `avaliacao_fraude.score` | float | Score/probabilidade de fraude |
+
+> O relatório cruza os dois datasets por `id_pedido`, mantendo apenas pedidos de **2025** com pagamento `status = false` e `avaliacao_fraude.fraude = false`.
+
+**Relatório (saída)** — Parquet gravado em `dataset/output/`, com uma linha por pedido e ordenado por `uf → forma_pagamento → data_criacao_pedido`:
+
+| Atributo | Tipo | Descrição |
+|---|---|---|
+| `id_pedido` | string | Identificador do pedido |
+| `uf` | string | Estado (UF) onde o pedido foi feito |
+| `forma_pagamento` | string | Forma de pagamento |
+| `valor_total_pedido` | double | Valor total do pedido (`valor_unitario_pedido × quantidade_pedido`) |
+| `data_criacao_pedido` | timestamp | Data do pedido |
+
+> A escrita valida o schema do relatório contra essa estrutura (`validate_schema=True` em `write_parquet`), garantindo que a saída tenha exatamente essas 5 colunas.
+
 ---
 
 ## Execução
