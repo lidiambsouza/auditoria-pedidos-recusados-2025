@@ -2,7 +2,6 @@
 import logging
 
 from pyspark.errors import AnalysisException
-from pyspark.sql import SparkSession
 from io_utils.data_handler import DataHandler
 from processing.transformations import Transformation
 
@@ -14,8 +13,8 @@ class Pipeline:
     Encapsula a lógica de execução do pipeline de dados.
     """
 
-    def __init__(self, spark: SparkSession, transformer: Transformation):
-        self.data_handler = DataHandler(spark)
+    def __init__(self, data_handler: DataHandler, transformer: Transformation):
+        self.data_handler = data_handler
         self.transformer = transformer
 
     def run(self, config):
